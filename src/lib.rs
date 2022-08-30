@@ -1,7 +1,10 @@
 mod arcdps;
+mod events;
 mod executor;
 mod exports;
+mod link;
 mod logging;
+mod mumblelink;
 mod music;
 mod pubsub;
 use std::env;
@@ -13,6 +16,7 @@ fn main() -> Result<(), Box<(dyn std::error::Error + 'static)>> {
     logging::info(format!("The current directory is {}", path.display()));
     executor::setup();
     pubsub::setup();
+    events::setup();
     Ok(())
 }
 
