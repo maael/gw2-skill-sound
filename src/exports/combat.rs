@@ -45,7 +45,8 @@ fn spawn_cbt(
                 logging::info(String::from("Entered Necro Shroud"));
                 music::play_music();
             } else if (name == "Do Nothing Transformation Buff" && ev.is_buff_remove == 1) {
-                logging::info(String::from("Exited shroud"))
+                logging::info(String::from("Exited shroud"));
+                music::stop_music();
             }
         }
     }

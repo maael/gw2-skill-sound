@@ -2,11 +2,12 @@ use crate::logging;
 use rodio::cpal::traits::{DeviceTrait, HostTrait};
 use rodio::*;
 // use rodio::{source::Source, Decoder, OutputStream};
-// use std::fs::File;
-// use std::io::BufReader;
-use rodio::source::{SineWave, Source};
+use rodio::source::FadeIn;
+use rodio::source::Source;
 use rodio::{Decoder, OutputStream, Sink};
-use std::time::Duration;
+use std::fs::File;
+use std::io::BufReader;
+use std::sync::RwLock;
 
 fn list_devices() {
     let host = cpal::default_host();
@@ -33,27 +34,50 @@ fn get_output_stream(device_name: &str) -> (OutputStream, OutputStreamHandle) {
     return (_stream, stream_handle);
 }
 
+static mut PLAYING: RwLock<i32> = RwLock::new(0);
+
+fn file_source() -> FadeIn<Decoder<BufReader<File>>> {
+    let file = BufReader::new(File::open("shroud.ogg").unwrap());
+    Decoder::new(file)
+        .unwrap()
+        .fade_in(std::time::Duration::from_secs(1))
+}
+
 pub fn play_music() {
     logging::info(String::from("Starting sound"));
+    unsafe {
+        {
+            let mut w = PLAYING.write().unwrap();
+            *w = 0;
+        }
+    }
     list_devices();
-    let (_stream, stream_handle) = get_output_stream("Headphones (6- Arctis Pro Wireless Game)");
-    // logging::info(String::from("Got stream"));
-    // let file = BufReader::new(File::open("shroud.ogg").unwrap());
-    // logging::info(String::from("Got file shroud.ogg"));
-    // // Decode that sound file into a source
-    // let source = Decoder::new(file).unwrap();
-    // logging::info(String::from("Got source"));
-    // // Play the sound directly on the device
-    // stream_handle.play_raw(source.convert_samples()).unwrap();
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let source = file_source();
     let sink = Sink::try_new(&stream_handle).unwrap();
-
-    let source = SineWave::new(440.0)
-        .take_duration(Duration::from_secs_f32(0.25))
-        .amplify(0.20);
     sink.append(source);
 
-    // The sound plays in a separate thread. This call will block the current thread until the sink
-    // has finished playing all its queued sounds.
-    sink.sleep_until_end();
-    logging::info(String::from("Playing"));
+    logging::info(String::from("[play_music] Start"));
+
+    unsafe {
+        {
+            let mut w = PLAYING.write().unwrap();
+            *w = 1;
+        }
+        {
+            while *PLAYING.read().unwrap() == 1 && !sink.empty() {
+                // print!(".");
+            }
+        }
+    }
+
+    logging::info(String::from("[play_music] End"));
+}
+
+pub fn stop_music() {
+    unsafe {
+        let mut w = PLAYING.write().unwrap();
+        *w = 0;
+    }
+    logging::info(String::from("Stopped"));
 }
