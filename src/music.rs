@@ -35,7 +35,7 @@ fn get_output_stream(device_name: &str) -> (OutputStream, OutputStreamHandle) {
     return (_stream, stream_handle);
 }
 
-static MAX_VOL: f32 = 0.6;
+static MAX_VOL: f32 = 0.1;
 static mut PLAYING: RwLock<f32> = RwLock::new(0.0);
 
 pub fn is_playing() -> bool {
@@ -74,6 +74,7 @@ pub fn play_music() {
     sink.append(source);
 
     logging::info(String::from("[play_music] Start"));
+    sink.set_volume(MAX_VOL);
 
     unsafe {
         {
@@ -102,7 +103,7 @@ pub fn stop_music() {
         while *PLAYING.read().unwrap() > 0.0 {
             let new_vol = {
                 let current = *PLAYING.read().unwrap();
-                current - 0.03
+                current - 0.001
             };
             logging::info(format!("Set Vol: {}", new_vol));
             let mut w = PLAYING.write().unwrap();
