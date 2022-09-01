@@ -38,10 +38,18 @@ fn spawn_cbt(
 ) {
     if let Some(name) = skillname {
         if let Some(ev) = ev {
-            if (name == "Reaper's Shroud" && ev.is_buff_remove == 0) {
+            if (name == "Reaper's Shroud" && ev.is_buff_remove == 0 && ev.skill_id == 29446) {
+                logging::info(format!(
+                    "Reaper Info: {}, {}, {}, {}",
+                    ev.skill_id, ev.is_activation, ev.is_buff_remove, ev.dst_agent
+                ));
                 logging::info(String::from("Entered Reaper Shroud"));
                 music::play_music();
-            } else if (name == "Death Shroud" && ev.is_buff_remove == 0) {
+            } else if (name == "Death Shroud" && ev.is_buff_remove == 0 && ev.skill_id == 790) {
+                logging::info(format!(
+                    "Necro Info: {}, {}, {}, {}",
+                    ev.skill_id, ev.is_activation, ev.is_buff_remove, ev.dst_agent
+                ));
                 logging::info(String::from("Entered Necro Shroud"));
                 music::play_music();
             } else if (name == "Do Nothing Transformation Buff" && ev.is_buff_remove == 1) {
